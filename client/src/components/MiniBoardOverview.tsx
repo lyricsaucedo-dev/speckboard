@@ -15,6 +15,8 @@ type Props = {
 
 const PANEL_W = 220;
 const PANEL_H = 132;
+const LANDSCAPE_PANEL_W = 160;
+const LANDSCAPE_PANEL_H = 104;
 const HEADER_H = 60;
 const MOBILE_SHEET_PEEK = 140;
 
@@ -42,20 +44,31 @@ export function MiniBoardOverview({
   const layoutInsets = () => {
     const mobile =
       typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
+    const compactLandscape =
+      mobile && typeof window !== 'undefined' && window.innerHeight < 500;
     const sidebar = mobile ? 0 : 360;
-    const bottomPad = mobile ? MOBILE_SHEET_PEEK + 16 : 8;
-    return { mobile, sidebar, bottomPad };
+    const bottomPad = compactLandscape ? 8 : mobile ? MOBILE_SHEET_PEEK + 16 : 8;
+    const panelW = compactLandscape ? LANDSCAPE_PANEL_W : PANEL_W;
+    const panelH = compactLandscape ? LANDSCAPE_PANEL_H : PANEL_H;
+    return { mobile, compactLandscape, sidebar, bottomPad, panelW, panelH };
   };
 
   useEffect(() => {
     if (!open) return;
-    const { sidebar, bottomPad } = layoutInsets();
-    const stageH = Math.max(200, window.innerHeight - HEADER_H);
-    const maxX = Math.max(8, window.innerWidth - sidebar - PANEL_W - 8);
-    setPos({
-      x: Math.min(16, maxX),
-      y: HEADER_H + Math.max(16, stageH - PANEL_H - bottomPad - 24),
-    });
+    const placeForViewport = () => {
+      const { compactLandscape, sidebar, bottomPad, panelW, panelH } = layoutInsets();
+      const stageH = Math.max(200, window.innerHeight - HEADER_H);
+      const maxX = Math.max(8, window.innerWidth - sidebar - panelW - 8);
+      setPos({
+        x: Math.min(16, maxX),
+        y: compactLandscape
+          ? HEADER_H + 64
+          : HEADER_H + Math.max(16, stageH - panelH - bottomPad - 24),
+      });
+    };
+    placeForViewport();
+    window.addEventListener('resize', placeForViewport);
+    return () => window.removeEventListener('resize', placeForViewport);
   }, [open]);
 
   const onPointerMove = useCallback((e: PointerEvent) => {
@@ -63,9 +76,9 @@ export function MiniBoardOverview({
     if (!d) return;
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
-    const { sidebar, bottomPad } = layoutInsets();
-    const maxX = Math.max(8, window.innerWidth - sidebar - PANEL_W - 8);
-    const maxY = Math.max(HEADER_H + 8, window.innerHeight - PANEL_H - bottomPad);
+    const { sidebar, bottomPad, panelW, panelH } = layoutInsets();
+    const maxX = Math.max(8, window.innerWidth - sidebar - panelW - 8);
+    const maxY = Math.max(HEADER_H + 8, window.innerHeight - panelH - bottomPad);
     setPos({
       x: Math.max(8, Math.min(maxX, d.origX + dx)),
       y: Math.max(HEADER_H + 8, Math.min(maxY, d.origY + dy)),
@@ -99,11 +112,12 @@ export function MiniBoardOverview({
   }, [onPointerMove, onPointerUp]);
 
   if (!open) return null;
+  const { panelW } = layoutInsets();
 
   return (
     <div
       className="mini-board-overview"
-      style={{ left: pos.x, top: pos.y, width: PANEL_W }}
+      style={{ left: pos.x, top: pos.y, width: panelW }}
       role="complementary"
       aria-label="Board overview"
     >

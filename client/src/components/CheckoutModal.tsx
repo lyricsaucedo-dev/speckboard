@@ -78,8 +78,7 @@ export function CheckoutModal({
             <>
               <strong>Guest checkout locks creative after buy (no later edits).</strong>
               <p>
-                Sign in to manage your pixels after purchase.{' '}
-                <Link to="/auth">Create an account</Link> before paying if you want to edit later.
+                Want to edit later? <Link to="/auth">Create an account</Link> before paying.
               </p>
             </>
           ) : (

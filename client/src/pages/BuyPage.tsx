@@ -55,6 +55,7 @@ export function BuyPage() {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [zoom, setZoom] = useState(4);
+  const [mobileTool, setMobileTool] = useState<'select' | 'pan'>('select');
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
   /** Mobile bottom sheet: peek (compact bar) vs expanded (full sidebar content). */
   const [sheetExpanded, setSheetExpanded] = useState(false);
@@ -373,7 +374,7 @@ export function BuyPage() {
             selection={selection}
             onSelectionChange={handleSelectionChange}
             appendSelect={false}
-            interactMode="select"
+            interactMode={isMobile ? mobileTool : 'select'}
             cellSize={zoom}
             previewShape={displayShape}
             previewImageUrl={artUrl}
@@ -391,6 +392,26 @@ export function BuyPage() {
         </div>
 
         <div className="buy-zoom-bar" aria-label="Zoom controls">
+          {isMobile && (
+            <div className="buy-touch-tools" role="group" aria-label="Touch tool">
+              <button
+                type="button"
+                className={mobileTool === 'select' ? 'active' : ''}
+                aria-pressed={mobileTool === 'select'}
+                onClick={() => setMobileTool('select')}
+              >
+                Select
+              </button>
+              <button
+                type="button"
+                className={mobileTool === 'pan' ? 'active' : ''}
+                aria-pressed={mobileTool === 'pan'}
+                onClick={() => setMobileTool('pan')}
+              >
+                Pan
+              </button>
+            </div>
+          )}
           <button type="button" onClick={() => bumpZoom(-1)} aria-label="Zoom out">
             −
           </button>
@@ -441,15 +462,22 @@ export function BuyPage() {
                 )
               )}
               maxDisplaySide={
-                editorFullscreen || isMobile
-                  ? Math.min(
-                      720,
-                      Math.max(
-                        280,
-                        (typeof window !== 'undefined' ? window.innerWidth : 900) -
-                          (isMobile ? 32 : 420)
+                isMobile
+                  ? Math.max(
+                      120,
+                      Math.min(
+                        (typeof window !== 'undefined' ? window.innerWidth : 390) - 72,
+                        (typeof window !== 'undefined' ? window.innerHeight : 844) - 430
                       )
                     )
+                  : editorFullscreen
+                    ? Math.min(
+                        720,
+                        Math.max(
+                          280,
+                          (typeof window !== 'undefined' ? window.innerWidth : 900) - 420
+                        )
+                      )
                   : Math.max(160, floatSize.w - 56)
               }
               onRequestImage={() => setImageModalOpen(true)}
@@ -493,7 +521,7 @@ export function BuyPage() {
                   </span>
                 </>
               ) : (
-                <span>Drag to select · Pinch zoom · 2-finger pan</span>
+                <span>Select or Pan · Pinch to zoom</span>
               )}
             </span>
             <span className="buy-sheet-chevron" aria-hidden>
@@ -542,7 +570,7 @@ export function BuyPage() {
               <p>{isMobile ? 'Drag on the board to claim an area' : 'Drag on the board to claim an area'}</p>
               <span className="field-hint">
                 {isMobile
-                  ? '1 finger = select · 2 fingers = pan · Pinch = zoom'
+                  ? 'Choose Select or Pan below · Pinch with two fingers to zoom'
                   : 'Scroll = zoom · Right/middle-drag = pan'}
               </span>
             </div>

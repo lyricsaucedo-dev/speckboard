@@ -696,11 +696,25 @@ export function PixelBoard({
     <div
       className={`board-shell${fitContain ? ' board-letterbox' : ''}${cover && !letterbox ? ' board-cover' : ''}`}
       ref={wrapRef}
+      role={interactMode === 'select' || interactMode === 'pan' ? 'region' : undefined}
+      aria-label={
+        interactMode === 'select' || interactMode === 'pan'
+          ? 'Interactive Speckboard'
+          : undefined
+      }
+      tabIndex={interactMode === 'select' || interactMode === 'pan' ? 0 : undefined}
     >
       <div className="board-frame board-frame-bare">
         <canvas
           ref={canvasRef}
           className="pixel-canvas"
+          role="application"
+          tabIndex={interactMode === 'select' || interactMode === 'pan' ? 0 : -1}
+          aria-label={
+            interactMode === 'select'
+              ? 'Speckboard pixel grid. Drag one finger to select; use two fingers to pan or pinch.'
+              : 'Speckboard pixel grid'
+          }
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}

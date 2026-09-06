@@ -50,6 +50,7 @@ export function SelectionMiniEditor({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const paintRef = useRef(false);
+  const lastPaintCellRef = useRef<{ x: number; y: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const skipReloadRef = useRef(false);
   const maskId = useId().replace(/:/g, '');
@@ -130,6 +131,30 @@ export function SelectionMiniEditor({
     ctx.fillRect(x, y, 1, 1);
   };
 
+  const paintLine = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+    let x0 = from.x;
+    let y0 = from.y;
+    const dx = Math.abs(to.x - x0);
+    const sx = x0 < to.x ? 1 : -1;
+    const dy = -Math.abs(to.y - y0);
+    const sy = y0 < to.y ? 1 : -1;
+    let error = dx + dy;
+
+    while (true) {
+      paintCell(x0, y0);
+      if (x0 === to.x && y0 === to.y) break;
+      const twiceError = 2 * error;
+      if (twiceError >= dy) {
+        error += dy;
+        x0 += sx;
+      }
+      if (twiceError <= dx) {
+        error += dx;
+        y0 += sy;
+      }
+    }
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -137,17 +162,22 @@ export function SelectionMiniEditor({
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     const cell = toCell(e);
     paintCell(cell.x, cell.y);
+    lastPaintCellRef.current = cell;
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
     if (!paintRef.current) return;
     const cell = toCell(e);
-    paintCell(cell.x, cell.y);
+    const previous = lastPaintCellRef.current;
+    if (previous) paintLine(previous, cell);
+    else paintCell(cell.x, cell.y);
+    lastPaintCellRef.current = cell;
   };
 
   const onPointerUp = () => {
     if (!paintRef.current) return;
     paintRef.current = false;
+    lastPaintCellRef.current = null;
     emitFromCanvas();
   };
 
@@ -219,6 +249,8 @@ export function SelectionMiniEditor({
           <canvas
             ref={canvasRef}
             className="mini-editor-canvas"
+            role="application"
+            aria-label={`Paint ${width} by ${height} pixel selection`}
             width={width}
             height={height}
             style={{
