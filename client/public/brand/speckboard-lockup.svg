@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" role="img" aria-label="Speckboard">
+  <title>Speckboard</title>
+  <rect width="640" height="160" fill="#F2EEE4"/>
+  <g transform="translate(24, 28)">
+    <rect width="104" height="104" rx="10" fill="#E6E1D6" stroke="#4A4742" stroke-width="1.5"/>
+    <g fill="#D4CEC0" stroke="#4A4742" stroke-width="0.5">
+      <rect x="20" y="20" width="12" height="12" rx="1"/>
+      <rect x="38" y="20" width="12" height="12" rx="1"/>
+      <rect x="56" y="20" width="12" height="12" rx="1"/>
+      <rect x="74" y="20" width="12" height="12" rx="1"/>
+      <rect x="20" y="38" width="12" height="12" rx="1"/>
+      <rect x="38" y="38" width="12" height="12" rx="1"/>
+      <rect x="56" y="38" width="12" height="12" rx="1"/>
+      <rect x="74" y="38" width="12" height="12" rx="1"/>
+      <rect x="20" y="56" width="12" height="12" rx="1"/>
+      <rect x="38" y="56" width="12" height="12" rx="1"/>
+      <rect x="56" y="56" width="12" height="12" rx="1"/>
+      <rect x="74" y="56" width="12" height="12" rx="1"/>
+      <rect x="20" y="74" width="12" height="12" rx="1"/>
+      <rect x="38" y="74" width="12" height="12" rx="1"/>
+      <rect x="56" y="74" width="12" height="12" rx="1"/>
+    </g>
+    <rect x="74" y="74" width="12" height="12" rx="1" fill="#5C6D7E" stroke="#1A1917" stroke-width="0.8"/>
+  </g>
+  <text
+    x="156"
+    y="98"
+    fill="#1A1917"
+    font-family="Helvetica Neue, Arial, sans-serif"
+    font-size="54"
+    font-weight="700"
+    letter-spacing="1.5"
+  >SPECKBOARD</text>
+</svg>

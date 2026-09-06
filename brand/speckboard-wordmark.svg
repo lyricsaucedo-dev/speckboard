@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 80" role="img" aria-label="Speckboard wordmark">
+  <title>Speckboard</title>
+  <text
+    x="0"
+    y="58"
+    fill="#1A1917"
+    font-family="Arial Black, Helvetica Neue, Arial, sans-serif"
+    font-size="52"
+    font-weight="800"
+    letter-spacing="-1.2"
+  >SPECKBOARD</text>
+  <rect x="498" y="18" width="14" height="14" rx="2" fill="#5C6D7E"/>
+</svg>

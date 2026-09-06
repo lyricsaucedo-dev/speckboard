@@ -1,0 +1,34 @@
+# Render Blueprint — https://dashboard.render.com/blueprints
+# Deploys one Web Service that serves API + static client.
+# Attach a persistent disk so data/speckboard.json survives restarts.
+
+services:
+  - type: web
+    name: speckboard
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    disk:
+      name: speckboard-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: DATA_DIR
+        value: /data
+      - key: SESSION_SECRET
+        generateValue: true
+      # Set after first deploy to your public HTTPS URL (same origin):
+      - key: CLIENT_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

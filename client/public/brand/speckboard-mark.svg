@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Speckboard mark">
+  <title>Speckboard</title>
+  <rect width="120" height="120" fill="#E6E1D6"/>
+  <g fill="#D4CEC0" stroke="#4A4742" stroke-width="0.6">
+    <rect x="24" y="24" width="14" height="14" rx="1.5"/>
+    <rect x="44" y="24" width="14" height="14" rx="1.5"/>
+    <rect x="64" y="24" width="14" height="14" rx="1.5"/>
+    <rect x="84" y="24" width="14" height="14" rx="1.5"/>
+    <rect x="24" y="44" width="14" height="14" rx="1.5"/>
+    <rect x="44" y="44" width="14" height="14" rx="1.5"/>
+    <rect x="64" y="44" width="14" height="14" rx="1.5"/>
+    <rect x="84" y="44" width="14" height="14" rx="1.5"/>
+    <rect x="24" y="64" width="14" height="14" rx="1.5"/>
+    <rect x="44" y="64" width="14" height="14" rx="1.5"/>
+    <rect x="64" y="64" width="14" height="14" rx="1.5"/>
+    <rect x="84" y="64" width="14" height="14" rx="1.5"/>
+    <rect x="24" y="84" width="14" height="14" rx="1.5"/>
+    <rect x="44" y="84" width="14" height="14" rx="1.5"/>
+    <rect x="64" y="84" width="14" height="14" rx="1.5"/>
+  </g>
+  <rect x="84" y="84" width="14" height="14" rx="1.5" fill="#5C6D7E" stroke="#1A1917" stroke-width="0.8"/>
+</svg>

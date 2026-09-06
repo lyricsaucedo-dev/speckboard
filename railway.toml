@@ -1,0 +1,13 @@
+# Railway — https://railway.app
+# Use the Dockerfile; attach a volume mounted at /data in the Railway UI.
+# Set env vars in the dashboard (never commit secrets).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

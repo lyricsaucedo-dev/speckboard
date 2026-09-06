@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Speckboard">
+  <title>Speckboard</title>
+  <defs>
+    <clipPath id="c"><circle cx="256" cy="256" r="256"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="512" height="512" fill="#0A0A0B"/>
+    <rect x="118" y="118" width="58" height="58" rx="12" fill="#FF2D55"/>
+    <rect x="190" y="118" width="58" height="58" rx="12" fill="#3A3A3C"/>
+    <rect x="262" y="118" width="58" height="58" rx="12" fill="#F5F5F7"/>
+    <rect x="334" y="118" width="58" height="58" rx="12" fill="#1C1C1E"/>
+    <rect x="118" y="190" width="58" height="58" rx="12" fill="#636366"/>
+    <rect x="190" y="190" width="58" height="58" rx="12" fill="#30D158"/>
+    <rect x="262" y="190" width="58" height="58" rx="12" fill="#0A84FF"/>
+    <rect x="334" y="190" width="58" height="58" rx="12" fill="#FF9F0A"/>
+    <rect x="118" y="262" width="58" height="58" rx="12" fill="#1C1C1E"/>
+    <rect x="190" y="262" width="58" height="58" rx="12" fill="#F5F5F7"/>
+    <rect x="262" y="262" width="58" height="58" rx="12" fill="#BF5AF2"/>
+    <rect x="334" y="262" width="58" height="58" rx="12" fill="#3A3A3C"/>
+    <rect x="118" y="334" width="58" height="58" rx="12" fill="#0A84FF"/>
+    <rect x="190" y="334" width="58" height="58" rx="12" fill="#FF2D55"/>
+    <rect x="262" y="334" width="58" height="58" rx="12" fill="#636366"/>
+    <rect x="330" y="330" width="66" height="66" rx="14" fill="#FF2D55"/>
+  </g>
+</svg>

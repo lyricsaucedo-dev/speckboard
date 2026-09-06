@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Speckboard">
+  <title>Speckboard</title>
+  <defs>
+    <clipPath id="circle">
+      <circle cx="256" cy="256" r="256"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#circle)">
+    <rect width="512" height="512" fill="#E6E1D6"/>
+    <circle cx="256" cy="256" r="248" fill="none" stroke="#4A4742" stroke-width="6"/>
+    <rect x="292" y="292" width="72" height="72" rx="8" fill="#5C6D7E"/>
+  </g>
+</svg>

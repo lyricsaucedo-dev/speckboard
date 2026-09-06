@@ -1,0 +1,16 @@
+node_modules
+client/node_modules
+server/node_modules
+client/dist
+server/dist
+data
+.git
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+README.md
+brand
+**/*.md
+!client/public/**/*.md
