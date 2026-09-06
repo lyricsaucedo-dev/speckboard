@@ -1878,6 +1878,15 @@ main {
   background: rgba(245, 245, 247, 0.08);
 }
 
+.floating-close-btn.is-done {
+  width: auto;
+  min-width: var(--touch-min);
+  padding-inline: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
 .floating-window-body {
   flex: 1;
   min-height: 0;
@@ -2444,6 +2453,19 @@ main {
     transform: none;
   }
 
+  .buy-sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 19;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.38);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
   .buy-sidebar.buy-sheet.is-expanded,
   .buy-layout.sheet-expanded .buy-sidebar.buy-sheet {
     max-height: min(72dvh, 560px);
@@ -2463,6 +2485,7 @@ main {
     cursor: pointer;
     text-align: left;
     flex-shrink: 0;
+    touch-action: none;
   }
 
   .buy-sheet-grip {
@@ -2514,6 +2537,17 @@ main {
   .buy-sidebar.buy-sheet.is-expanded .buy-sidebar-body,
   .buy-layout.sheet-expanded .buy-sidebar-body {
     display: flex;
+  }
+
+  /* Price and account are already represented by the summary, dock, and nav. */
+  .buy-sidebar.buy-sheet .sidebar-price,
+  .buy-sidebar.buy-sheet .sidebar-account {
+    display: none;
+  }
+
+  /* Edit and Image stay pinned in the dock; keep only destructive Clear here. */
+  .buy-sidebar.buy-sheet .selection-actions .btn:not(:last-child) {
+    display: none;
   }
 
   .buy-sheet-dock {

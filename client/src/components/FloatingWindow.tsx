@@ -173,8 +173,13 @@ export function FloatingWindow({
               )}
             </button>
           )}
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close editor">
-            ×
+          <button
+            type="button"
+            className={`icon-btn floating-close-btn${useMobileChrome ? ' is-done' : ''}`}
+            onClick={onClose}
+            aria-label={useMobileChrome ? 'Done editing' : 'Close editor'}
+          >
+            {useMobileChrome ? 'Done' : '×'}
           </button>
         </div>
       </header>

@@ -234,6 +234,7 @@ export function PixelBoard({
     lastCy: number;
   } | null>(null);
   const [draft, setDraft] = useState<Region | null>(null);
+  const draftFrameRef = useRef<number | null>(null);
   const imageCache = useRef(new Map<string, HTMLImageElement>());
   const previewImgRef = useRef<HTMLImageElement | null>(null);
   const [previewTick, setPreviewTick] = useState(0);
@@ -468,6 +469,10 @@ export function PixelBoard({
     const cy = (a.y + b.y) / 2;
     pinchRef.current = { startDist: dist, lastCx: cx, lastCy: cy };
     // Cancel in-progress select when a second finger lands
+    if (draftFrameRef.current != null) {
+      cancelAnimationFrame(draftFrameRef.current);
+      draftFrameRef.current = null;
+    }
     setDraft(null);
     dragRef.current = {
       kind: 'pinch',
@@ -644,11 +649,23 @@ export function PixelBoard({
       gridWidth,
       gridHeight
     );
-    setDraft(region);
     drag.draft = region;
+    // Touch hardware can emit far more pointer events than the screen can paint.
+    // Keep the latest region synchronously, but redraw at most once per frame.
+    if (draftFrameRef.current == null) {
+      draftFrameRef.current = requestAnimationFrame(() => {
+        draftFrameRef.current = null;
+        const active = dragRef.current;
+        setDraft(active?.kind === 'select' ? active.draft : null);
+      });
+    }
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
+    if (draftFrameRef.current != null) {
+      cancelAnimationFrame(draftFrameRef.current);
+      draftFrameRef.current = null;
+    }
     pointersRef.current.delete(e.pointerId);
 
     // Still two fingers after one lift — keep pinch; re-baseline distance
@@ -688,6 +705,13 @@ export function PixelBoard({
     if (regionHitsSold(region, ads)) return;
     onSelectionChange(appendSelect ? [...selection, region] : [region]);
   };
+
+  useEffect(
+    () => () => {
+      if (draftFrameRef.current != null) cancelAnimationFrame(draftFrameRef.current);
+    },
+    []
+  );
 
   const cssW = `${gridWidth * scale}px`;
   const cssH = `${gridHeight * scale}px`;

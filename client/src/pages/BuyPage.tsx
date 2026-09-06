@@ -64,6 +64,7 @@ export function BuyPage() {
   const draftLoadedRef = useRef<string | null>(null);
   /** Pinch baseline: zoom at gesture start; ratio maps to discrete ZOOM_STEPS. */
   const pinchBaseZoomRef = useRef<number | null>(null);
+  const sheetGestureRef = useRef<{ startY: number; swiped: boolean } | null>(null);
   /** Cursor/center anchor applied in useLayoutEffect after zoom changes the canvas size. */
   const zoomAnchorRef = useRef<{
     contentX: number;
@@ -498,6 +499,15 @@ export function BuyPage() {
         )}
       </div>
 
+      {isMobile && sheetExpanded && (
+        <button
+          type="button"
+          className="buy-sheet-backdrop"
+          aria-label="Collapse purchase details"
+          onClick={() => setSheetExpanded(false)}
+        />
+      )}
+
       <aside
         className={`buy-sidebar${isMobile ? ' buy-sheet' : ''}${sheetExpanded ? ' is-expanded' : ''}`}
       >
@@ -507,7 +517,28 @@ export function BuyPage() {
             className="buy-sheet-handle"
             aria-expanded={sheetExpanded}
             aria-label={sheetExpanded ? 'Collapse details' : 'Expand details'}
-            onClick={() => setSheetExpanded((v) => !v)}
+            onPointerDown={(e) => {
+              sheetGestureRef.current = { startY: e.clientY, swiped: false };
+              e.currentTarget.setPointerCapture(e.pointerId);
+            }}
+            onPointerUp={(e) => {
+              const gesture = sheetGestureRef.current;
+              if (!gesture) return;
+              const delta = e.clientY - gesture.startY;
+              if (Math.abs(delta) >= 28) {
+                gesture.swiped = true;
+                setSheetExpanded(delta < 0);
+              }
+            }}
+            onPointerCancel={() => {
+              sheetGestureRef.current = null;
+            }}
+            onClick={() => {
+              const gesture = sheetGestureRef.current;
+              sheetGestureRef.current = null;
+              if (gesture?.swiped) return;
+              setSheetExpanded((v) => !v);
+            }}
           >
             <span className="buy-sheet-grip" aria-hidden />
             <span className="buy-sheet-summary">
@@ -518,6 +549,7 @@ export function BuyPage() {
                   </strong>
                   <span>
                     {pixels.toLocaleString()} px · {formatUsd(priceCents)}
+                    {linksUnlocked ? ' · links unlocked' : ''}
                   </span>
                 </>
               ) : (
@@ -531,7 +563,7 @@ export function BuyPage() {
         )}
 
         <div className="buy-sidebar-body">
-        <div className="sidebar-block">
+        <div className="sidebar-block sidebar-area">
           <h2>Your area</h2>
           {primary ? (
             <>
@@ -578,7 +610,7 @@ export function BuyPage() {
         </div>
 
         {primary && (
-          <div className="sidebar-block">
+          <div className="sidebar-block sidebar-shape">
             <h2>Shape</h2>
             <p className="field-hint" style={{ margin: 0 }}>
               Masks the whole block as one silhouette.
@@ -598,7 +630,7 @@ export function BuyPage() {
           </div>
         )}
 
-        <div className="sidebar-block">
+        <div className="sidebar-block sidebar-price">
           <h2>Live price</h2>
           <div className="live-price" aria-live="polite">
             <span>
@@ -630,7 +662,7 @@ export function BuyPage() {
           )}
         </div>
 
-        <div className="sidebar-block">
+        <div className="sidebar-block sidebar-draft">
           <h2>Draft</h2>
           {user ? (
             <>
@@ -669,7 +701,7 @@ export function BuyPage() {
           )}
         </div>
 
-        <div className="sidebar-block">
+        <div className="sidebar-block sidebar-account">
           <h2>Account</h2>
           {user ? (
             <p className="lead" style={{ margin: 0 }}>
