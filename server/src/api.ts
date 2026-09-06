@@ -1,7 +1,4 @@
 import './env.js';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Router } from 'express';
 import { v4 as uuid } from 'uuid';
 import Stripe from 'stripe';
@@ -22,6 +19,7 @@ import {
   type Region,
 } from './db.js';
 import { requireAuth } from './auth.js';
+import { ensureDefaultSpeck } from './seed.js';
 
 const ALLOWED_SHAPES = ['square', 'circle', 'star', 'triangle', 'diamond', 'hexagon'];
 
@@ -389,51 +387,8 @@ apiRouter.get('/checkout/:id/status', (req, res) => {
 });
 
 apiRouter.post('/demo/seed', (_req, res) => {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(403).json({ error: 'Not available in production' });
-  }
-  if (db.read().ads.length > 0) {
-    return res.json({ ok: true, seeded: false, message: 'Board already has ads' });
-  }
-
-  // Single real seed speck (Pop Cat) — no generic placeholder ads.
-  const popCatPath = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    '../../client/public/specks/pop-cat.png'
-  );
-  let imageUrl = '/specks/pop-cat.png';
-  try {
-    const bytes = fs.readFileSync(popCatPath);
-    imageUrl = `data:image/png;base64,${bytes.toString('base64')}`;
-  } catch {
-    // Fall back to public path if file missing during unusual setups.
-  }
-
-  const stamp = nowIso();
-  const width = 20;
-  const height = 20;
-  db.update((s) => {
-    s.ads.push({
-      id: uuid(),
-      user_id: null,
-      x: 240,
-      y: 90,
-      width,
-      height,
-      title: 'Dont tell my dad i used his card',
-      link_url: '',
-      image_url: imageUrl,
-      shape: 'square',
-      locked: 1,
-      stripe_session_id: null,
-      amount_cents: width * height * PIXEL_PRICE_CENTS,
-      status: 'active',
-      created_at: stamp,
-      updated_at: stamp,
-    });
-  });
-
-  res.json({ ok: true, seeded: true });
+  const result = ensureDefaultSpeck();
+  res.json({ ok: true, ...result });
 });
 
 apiRouter.get('/drafts', requireAuth, (req, res) => {

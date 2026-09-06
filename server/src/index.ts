@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { authRouter } from './auth.js';
 import { apiRouter, finalizeCheckout, stripe } from './api.js';
 import { db } from './db.js';
+import { ensureDefaultSpeck } from './seed.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
@@ -122,6 +123,11 @@ app.get('*', (req, res, next) => {
     if (err) next();
   });
 });
+
+const seedResult = ensureDefaultSpeck();
+if (seedResult.seeded) {
+  console.log(`Board seed: ${seedResult.message}`);
+}
 
 app.listen(PORT, () => {
   console.log(`Speckboard API on http://localhost:${PORT}`);

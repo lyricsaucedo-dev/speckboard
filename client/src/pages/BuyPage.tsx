@@ -190,9 +190,35 @@ export function BuyPage() {
     zoomAnchorRef.current = null;
   }, [zoom]);
 
-  // Default mobile zoom once on narrow screens
+  // Lock page scroll while on Buy (iOS rubber-band / address-bar jumps)
   useEffect(() => {
-    if (isMobile && zoomRef.current === 4) {
+    document.documentElement.classList.add('buy-lock');
+    document.body.classList.add('buy-lock');
+    return () => {
+      document.documentElement.classList.remove('buy-lock');
+      document.body.classList.remove('buy-lock');
+    };
+  }, []);
+
+  // Fit board width once when entering mobile buy (don’t fight later user zoom)
+  const mobileFitDoneRef = useRef(false);
+  useEffect(() => {
+    if (!isMobile) {
+      mobileFitDoneRef.current = false;
+      return;
+    }
+    if (mobileFitDoneRef.current) return;
+    const el = viewportRef.current;
+    if (!el || el.clientWidth < 40) return;
+    const usable = Math.max(240, el.clientWidth - 8);
+    const fit = Math.max(1, Math.floor(usable / gw));
+    setZoom(nearestZoomStep(Math.min(Math.max(fit, 1), 3)));
+    mobileFitDoneRef.current = true;
+  }, [isMobile, gw, ads.length]);
+
+  // Fallback if fit hasn’t run yet
+  useEffect(() => {
+    if (isMobile && !mobileFitDoneRef.current && zoomRef.current === 4) {
       setZoom(2);
     }
   }, [isMobile]);
@@ -633,6 +659,27 @@ export function BuyPage() {
 
         {isMobile && (
           <div className="buy-sheet-dock">
+            {primary && !editorOpen && (
+              <button
+                type="button"
+                className="btn ghost wide"
+                onClick={() => {
+                  setEditorOpen(true);
+                  setSheetExpanded(false);
+                }}
+              >
+                Edit area
+              </button>
+            )}
+            {primary && (
+              <button
+                type="button"
+                className="btn ghost wide"
+                onClick={() => setImageModalOpen(true)}
+              >
+                Image
+              </button>
+            )}
             <button
               type="button"
               className="btn primary wide"

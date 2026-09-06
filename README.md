@@ -76,7 +76,7 @@ Copy `.env.example` → `.env` at the repo root:
 
 ## Optional demo seed
 
-With the API running:
+Pop Cat (`Dont tell my dad i used his card`, 20×20) is **auto-seeded on server start** if missing — including production / Render. You can also force it:
 
 ```powershell
 Invoke-RestMethod -Method Post http://localhost:3001/api/demo/seed

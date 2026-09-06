@@ -66,10 +66,11 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+html.buy-lock,
+body.buy-lock {
+  overflow: hidden;
+  height: 100%;
+  overscroll-behavior: none;
 }
 
 body {
@@ -2309,11 +2310,17 @@ main {
   :root {
     --sidebar-w: 0px;
     --header-h: 56px;
+    --sheet-peek: calc(5.75rem + var(--safe-bottom));
   }
 
   main {
     width: 100%;
     padding: 1rem 1rem calc(2rem + var(--safe-bottom));
+  }
+
+  .app-shell.layout-buy main {
+    padding: 0;
+    overflow: hidden;
   }
 
   .buy-layout {
@@ -2330,6 +2337,8 @@ main {
     min-height: 0;
     height: auto;
     overflow: hidden;
+    /* Keep board clear of the peek sheet + zoom chips */
+    padding-bottom: var(--sheet-peek);
   }
 
   .buy-viewport {
@@ -2436,7 +2445,9 @@ main {
   }
 
   .buy-sheet-dock {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     flex-shrink: 0;
     padding: 0.65rem 1rem 0.75rem;
     border-top: 1px solid var(--line);
@@ -2445,6 +2456,7 @@ main {
 
   .buy-sheet-dock .btn {
     min-height: var(--touch-min);
+    font-size: 1rem;
   }
 
   /* Dock owns Checkout on mobile — avoid duplicate in Live price */
@@ -2460,7 +2472,7 @@ main {
 
   .buy-zoom-bar {
     left: max(0.65rem, var(--safe-left));
-    bottom: calc(8.75rem + var(--safe-bottom));
+    bottom: calc(var(--sheet-peek) + 0.35rem);
     max-width: calc(100% - 1.5rem);
     z-index: 12;
   }
@@ -2475,18 +2487,18 @@ main {
     top: calc(var(--header-h) + var(--safe-top));
     left: 0;
     right: 0;
-    bottom: calc(8.5rem + var(--safe-bottom));
+    bottom: var(--sheet-peek);
     height: auto;
     border-right: 0;
   }
 
   .floating-window.is-mobile-panel.is-fullscreen,
   .floating-window.is-fullscreen {
-    bottom: calc(8.5rem + var(--safe-bottom));
+    bottom: var(--sheet-peek);
   }
 
   .floating-window.is-mobile-panel {
-    bottom: calc(8.5rem + var(--safe-bottom));
+    bottom: var(--sheet-peek);
   }
 
   .mini-board-overview {
@@ -2541,6 +2553,16 @@ main {
   .live-price strong {
     font-size: 2rem;
   }
+
+  .selection-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .selection-actions .btn {
+    min-height: var(--touch-min);
+  }
 }
 
 @media (max-width: 720px) {
@@ -2570,15 +2592,27 @@ main {
   }
 
   .landing-copy {
-    padding: 1.5rem max(1.15rem, var(--safe-left)) calc(2.5rem + var(--safe-bottom));
+    padding: 1.25rem max(1.15rem, var(--safe-left)) calc(1.75rem + var(--safe-bottom));
   }
 
   .landing-copy .hero-brand {
     font-size: clamp(2.6rem, 14vw, 4.2rem);
   }
 
+  .landing-copy .hero-hook {
+    display: none; /* keep first viewport tight on phones */
+  }
+
   .landing-chapter {
-    padding: 3rem max(1.15rem, var(--safe-left));
+    padding: 2.75rem max(1.15rem, var(--safe-left));
+  }
+
+  .how-steps {
+    gap: 1rem;
+  }
+
+  .how-steps li {
+    padding: 1rem 0;
   }
 
   .hero-cta,
@@ -2640,20 +2674,32 @@ main {
     display: inline-flex;
     align-items: center;
   }
+
+  .recent-specks ul {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 900px) and (orientation: landscape) {
+  :root {
+    --sheet-peek: calc(4.75rem + var(--safe-bottom));
+  }
+
   .buy-sidebar.buy-sheet.is-expanded,
   .buy-layout.sheet-expanded .buy-sidebar.buy-sheet {
     max-height: min(85dvh, 420px);
   }
 
   .buy-zoom-bar {
-    bottom: calc(7.5rem + var(--safe-bottom));
+    bottom: calc(var(--sheet-peek) + 0.25rem);
   }
 
   .floating-window.is-mobile-panel,
   .floating-window.is-fullscreen {
-    bottom: calc(7.5rem + var(--safe-bottom));
+    bottom: var(--sheet-peek);
+  }
+
+  .landing-copy .hero-hook {
+    display: block;
   }
 }

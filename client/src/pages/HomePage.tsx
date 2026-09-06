@@ -83,7 +83,7 @@ export function HomePage() {
           </li>
           <li>
             <strong>Paint your speck</strong>
-            <span>Color cells or drop an image in the sidebar mini board, then pick a shape mask.</span>
+            <span>Color cells or drop an image in the editor popup, then pick a shape mask.</span>
           </li>
           <li>
             <strong>Links from $5</strong>
