@@ -595,7 +595,8 @@ main {
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow: hidden;
+  /* Clip on the board layer only — overflow:hidden here was cutting SPECKBOARD */
+  overflow: visible;
   display: grid;
   place-items: end stretch;
   background: var(--void);
@@ -608,6 +609,7 @@ main {
   display: grid;
   place-items: center;
   background: var(--void);
+  overflow: hidden;
 }
 
 .landing-board-bg .board-shell.board-letterbox {
@@ -709,7 +711,7 @@ main {
   width: min(100%, 40rem);
   min-width: 0;
   padding: 2rem 1.5rem 3.25rem;
-  overflow: hidden;
+  overflow: visible;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -737,13 +739,27 @@ main {
 
 .landing-copy .hero-brand {
   margin: 0;
+  width: 100%;
+  max-width: 100%;
+  line-height: 0;
+  overflow: visible;
+}
+
+.landing-copy .hero-brand-svg {
+  display: block;
+  width: 100%;
+  max-width: 36rem;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 2px 24px rgba(0, 0, 0, 0.55));
+}
+
+.landing-copy .hero-brand-text {
+  fill: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(3rem, 11vw, 6rem);
-  line-height: 0.88;
-  letter-spacing: -0.055em;
   font-weight: 800;
-  color: var(--ink);
-  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.55);
+  font-size: 24px;
+  letter-spacing: -0.04em;
 }
 
 .landing-copy .hero-tag {
@@ -2838,12 +2854,16 @@ main {
     width: 100%;
     max-width: 100%;
     padding: 1rem max(1.15rem, var(--safe-left)) calc(1.35rem + var(--safe-bottom));
+    padding-right: max(1.35rem, var(--safe-right));
+    overflow: visible;
   }
 
   .landing-copy .hero-brand {
+    display: block;
+  }
+
+  .landing-copy .hero-brand-svg {
     max-width: 100%;
-    font-size: clamp(2.35rem, 12.5vw, 3.5rem);
-    letter-spacing: -0.075em;
   }
 
   .landing-copy .hero-hook {

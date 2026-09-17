@@ -64,7 +64,26 @@ export function HomePage() {
             <img src="/brand/speckboard-pfp.svg" alt="" width={28} height={28} className="brand-mark" />
             Own a speck of the internet
           </p>
-          <h1 className="hero-brand">SPECKBOARD</h1>
+          <h1 className="hero-brand">
+            <svg
+              className="hero-brand-svg"
+              viewBox="0 0 200 28"
+              width="100%"
+              height="auto"
+              role="img"
+              aria-label="SPECKBOARD"
+            >
+              <text
+                x="1"
+                y="22"
+                textLength="198"
+                lengthAdjust="spacingAndGlyphs"
+                className="hero-brand-text"
+              >
+                SPECKBOARD
+              </text>
+            </svg>
+          </h1>
           <p className="hero-tag">Leave your speck.</p>
           <p className="hero-hook">$1 = 4 pixels · Creators, brands, or just for fun.</p>
           <Link to="/buy" className="btn primary hero-cta">
