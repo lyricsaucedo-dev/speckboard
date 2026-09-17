@@ -79,7 +79,7 @@ export function HomePage() {
         <ol className="how-steps">
           <li>
             <strong>$1 = 4 pixels</strong>
-            <span>Every cell is one pixel at $0.25. Mass-select your region on the board.</span>
+            <span>Every cell is one pixel at $0.25. On phones: pan to explore, tap Select, then drag your region.</span>
           </li>
           <li>
             <strong>Paint your speck</strong>

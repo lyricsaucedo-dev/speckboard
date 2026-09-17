@@ -1079,6 +1079,75 @@ main {
   color: var(--muted);
 }
 
+.buy-mode-chip {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  z-index: 14;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(18, 18, 20, 0.92);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.buy-selection-hud {
+  position: absolute;
+  top: 0.75rem;
+  left: max(0.75rem, var(--safe-left));
+  z-index: 14;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.55rem;
+  max-width: min(18rem, calc(100% - 1.5rem));
+  padding: 0.55rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 45, 85, 0.35);
+  background: rgba(18, 18, 20, 0.92);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.buy-selection-hud strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.buy-selection-hud span {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.buy-selection-hud-signal {
+  color: var(--signal) !important;
+  font-weight: 600;
+}
+
+.buy-sheet-dock .btn.is-active-tool {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--ink);
+}
+
+.buy-layout.tool-pan .buy-viewport {
+  cursor: grab;
+}
+
+.buy-layout.tool-select .buy-viewport {
+  cursor: crosshair;
+}
+
 .zoom-hover-hint {
   font-size: 0.78rem !important;
   color: var(--muted) !important;
@@ -2587,9 +2656,32 @@ main {
 
   .buy-zoom-bar {
     left: max(0.65rem, var(--safe-left));
+    right: max(0.65rem, var(--safe-right));
     bottom: calc(var(--sheet-peek) + 0.35rem);
-    max-width: calc(100% - 1.5rem);
+    max-width: none;
+    width: auto;
     z-index: 12;
+    justify-content: center;
+  }
+
+  .buy-zoom-bar.is-mobile-chrome {
+    gap: 0.3rem;
+  }
+
+  .buy-layout.editor-open .buy-zoom-bar,
+  .buy-layout.editor-open .buy-mode-chip,
+  .buy-layout.editor-open .buy-selection-hud {
+    display: none;
+  }
+
+  .buy-mode-chip {
+    top: 0.55rem;
+    font-size: 0.74rem;
+  }
+
+  .buy-selection-hud {
+    top: 0.55rem;
+    left: max(0.55rem, var(--safe-left));
   }
 
   .buy-zoom-bar button {
@@ -2598,9 +2690,12 @@ main {
     min-width: var(--touch-min);
   }
 
-  .buy-zoom-bar .buy-touch-tools button {
+  .buy-zoom-bar .buy-touch-tools button,
+  .buy-zoom-bar .btn.ghost.compact {
     width: auto;
-    min-width: 3.35rem;
+    min-width: 3.1rem;
+    padding-inline: 0.65rem;
+    font-size: 0.78rem;
   }
 
   .floating-window.is-fullscreen {
@@ -2714,6 +2809,23 @@ main {
     height: 36px;
   }
 
+  .landing-copy .hero-eyebrow {
+    font-size: 0.72rem;
+  }
+
+  .landing-copy .hero-tag {
+    font-size: 1.05rem;
+  }
+
+  .landing-veil {
+    background: linear-gradient(
+      to top,
+      rgba(9, 9, 11, 0.92) 0%,
+      rgba(9, 9, 11, 0.55) 42%,
+      transparent 78%
+    );
+  }
+
   .scarcity-chip {
     top: calc(var(--header-h) + var(--safe-top) + 0.5rem);
     right: max(0.75rem, var(--safe-right));
@@ -2725,7 +2837,7 @@ main {
   .landing-copy {
     width: 100%;
     max-width: 100%;
-    padding: 1.25rem max(1.15rem, var(--safe-left)) calc(1.75rem + var(--safe-bottom));
+    padding: 1rem max(1.15rem, var(--safe-left)) calc(1.35rem + var(--safe-bottom));
   }
 
   .landing-copy .hero-brand {

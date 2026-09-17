@@ -55,7 +55,8 @@ export function BuyPage() {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [zoom, setZoom] = useState(4);
-  const [mobileTool, setMobileTool] = useState<'select' | 'pan'>('select');
+  /** Mobile default = pan (r/place + maps). Select is intentional. */
+  const [mobileTool, setMobileTool] = useState<'select' | 'pan'>('pan');
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null);
   /** Mobile bottom sheet: peek (compact bar) vs expanded (full sidebar content). */
   const [sheetExpanded, setSheetExpanded] = useState(false);
@@ -122,10 +123,23 @@ export function BuyPage() {
   const gh = config?.gridHeight ?? 200;
   const pricePerPx = (config?.pixelPriceCents ?? 25) / 100;
 
-  // Peek sheet summary when a selection appears; stay collapsed while editor paints
+  // Keep sheet collapsed by default so the board stays visible (maps-style).
+  // Peek bar + dock carry price/actions; user swipes up for shape/draft details.
   useEffect(() => {
-    if (isMobile && primary && !editorOpen) setSheetExpanded(true);
-  }, [isMobile, primary, editorOpen]);
+    if (isMobile && editorOpen) setSheetExpanded(false);
+  }, [isMobile, editorOpen]);
+
+  // After first selection on mobile, briefly hint Select mode if still on Pan
+  const [selectHint, setSelectHint] = useState(false);
+  useEffect(() => {
+    if (!isMobile || mobileTool !== 'select') {
+      setSelectHint(false);
+      return;
+    }
+    setSelectHint(true);
+    const t = window.setTimeout(() => setSelectHint(false), 2400);
+    return () => window.clearTimeout(t);
+  }, [isMobile, mobileTool]);
 
   const setZoomAnchored = useCallback((next: number, anchor?: { viewX: number; viewY: number }) => {
     const el = viewportRef.current;
@@ -281,6 +295,60 @@ export function BuyPage() {
     setZoomAnchored(next);
   };
 
+  const fitBoardWidth = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) {
+      setZoomAnchored(isMobile ? 1 : 2);
+      return;
+    }
+    const usable = Math.max(200, el.clientWidth - 8);
+    const fit = Math.max(1, Math.floor(usable / gw));
+    setZoomAnchored(nearestZoomStep(Math.min(Math.max(fit, 1), isMobile ? 3 : 4)));
+  }, [gw, isMobile, setZoomAnchored]);
+
+  const focusSelection = useCallback(() => {
+    const el = viewportRef.current;
+    const r = selection[0];
+    if (!el || !r) return;
+    const oldZoom = zoomRef.current;
+    const target = nearestZoomStep(
+      Math.max(
+        2,
+        Math.min(
+          8,
+          Math.floor(Math.min((el.clientWidth - 48) / r.width, (el.clientHeight - 48) / r.height))
+        )
+      )
+    );
+    zoomAnchorRef.current = {
+      contentX: (r.x + r.width / 2) * oldZoom,
+      contentY: (r.y + r.height / 2) * oldZoom,
+      viewX: el.clientWidth / 2,
+      viewY: el.clientHeight / 2,
+      ratio: target / oldZoom,
+    };
+    setZoom(target);
+  }, [selection]);
+
+  const handleDoubleTapZoom = useCallback(
+    (clientX: number, clientY: number) => {
+      const el = viewportRef.current;
+      if (!el) {
+        bumpZoom(1);
+        return;
+      }
+      const rect = el.getBoundingClientRect();
+      const idx = ZOOM_STEPS.indexOf(zoomRef.current);
+      const i = idx >= 0 ? idx : 2;
+      const next = ZOOM_STEPS[Math.min(ZOOM_STEPS.length - 1, i + 2)];
+      setZoomAnchored(next, {
+        viewX: clientX - rect.left,
+        viewY: clientY - rect.top,
+      });
+    },
+    [setZoomAnchored]
+  );
+
   const handleSelectionChange = useCallback((regions: Region[]) => {
     const next = regions.slice(0, 1);
     setSelection(next);
@@ -297,6 +365,8 @@ export function BuyPage() {
     setEditorOpen(true);
     // Keep sheet collapsed while editing so the board/editor get the screen
     setSheetExpanded(false);
+    // Return to pan after claiming so accidental re-drags don’t wipe the area
+    setMobileTool('pan');
   }, []);
 
   const clearAll = () => {
@@ -356,7 +426,13 @@ export function BuyPage() {
   }, [primary]);
 
   return (
-    <div className={`buy-layout${isMobile ? ' is-mobile' : ''}${sheetExpanded ? ' sheet-expanded' : ''}`}>
+    <div
+      className={`buy-layout${isMobile ? ' is-mobile' : ''}${sheetExpanded ? ' sheet-expanded' : ''}${
+        editorOpen ? ' editor-open' : ''
+      }${isMobile && mobileTool === 'pan' ? ' tool-pan' : ''}${
+        isMobile && mobileTool === 'select' ? ' tool-select' : ''
+      }`}
+    >
       <div className="buy-stage">
         {params.get('canceled') === '1' && (
           <p className="flash warn buy-toast">Checkout canceled — your selection is still here.</p>
@@ -367,7 +443,10 @@ export function BuyPage() {
           </p>
         )}
 
-        <div className="buy-viewport mode-select" ref={viewportRef}>
+        <div
+          className={`buy-viewport ${isMobile && mobileTool === 'pan' ? 'mode-pan' : 'mode-select'}`}
+          ref={viewportRef}
+        >
           <PixelBoard
             ads={ads}
             gridWidth={gw}
@@ -383,26 +462,39 @@ export function BuyPage() {
             onPanDelta={(dx, dy) => {
               const el = viewportRef.current;
               if (!el) return;
-              // Direct assignment (not += on read-modify in separate axes) keeps X/Y in sync
               el.scrollLeft = el.scrollLeft - dx;
               el.scrollTop = el.scrollTop - dy;
             }}
             onPinchZoom={handlePinchZoom}
+            onDoubleTapZoom={handleDoubleTapZoom}
             onAdClick={(ad) => window.open(ad.linkUrl, '_blank', 'noopener,noreferrer')}
           />
         </div>
 
-        <div className="buy-zoom-bar" aria-label="Zoom controls">
+        {isMobile && selectHint && !editorOpen && (
+          <p className="buy-mode-chip" role="status">
+            Drag to claim an area · Pinch or double-tap to zoom
+          </p>
+        )}
+
+        {isMobile && primary && !editorOpen && (
+          <div className="buy-selection-hud" aria-live="polite">
+            <strong>
+              {primary.width}×{primary.height}
+            </strong>
+            <span>
+              {pixels.toLocaleString()} px · {formatUsd(priceCents)}
+            </span>
+            {linksUnlocked && <span className="buy-selection-hud-signal">links on</span>}
+          </div>
+        )}
+
+        <div
+          className={`buy-zoom-bar buy-map-chrome${isMobile ? ' is-mobile-chrome' : ''}`}
+          aria-label="Board controls"
+        >
           {isMobile && (
             <div className="buy-touch-tools" role="group" aria-label="Touch tool">
-              <button
-                type="button"
-                className={mobileTool === 'select' ? 'active' : ''}
-                aria-pressed={mobileTool === 'select'}
-                onClick={() => setMobileTool('select')}
-              >
-                Select
-              </button>
               <button
                 type="button"
                 className={mobileTool === 'pan' ? 'active' : ''}
@@ -411,18 +503,43 @@ export function BuyPage() {
               >
                 Pan
               </button>
+              <button
+                type="button"
+                className={mobileTool === 'select' ? 'active' : ''}
+                aria-pressed={mobileTool === 'select'}
+                onClick={() => setMobileTool('select')}
+              >
+                Select
+              </button>
             </div>
           )}
           <button type="button" onClick={() => bumpZoom(-1)} aria-label="Zoom out">
             −
           </button>
-          <span title="Screen pixels per board cell">{zoom}px/cell</span>
+          {!isMobile && (
+            <span title="Screen pixels per board cell">{zoom}px/cell</span>
+          )}
           <button type="button" onClick={() => bumpZoom(1)} aria-label="Zoom in">
             +
           </button>
-          <button type="button" className="btn ghost compact" onClick={() => setZoomAnchored(isMobile ? 2 : 4)}>
-            Reset
+          <button
+            type="button"
+            className="btn ghost compact"
+            onClick={fitBoardWidth}
+            aria-label="Fit board to screen"
+          >
+            Fit
           </button>
+          {primary && (
+            <button
+              type="button"
+              className="btn ghost compact"
+              onClick={focusSelection}
+              aria-label="Focus selection"
+            >
+              Focus
+            </button>
+          )}
           {hoverCell && !isMobile && (
             <span className="zoom-hover-hint">
               ({hoverCell.x},{hoverCell.y}) · ${pricePerPx.toFixed(2)}/px
@@ -553,7 +670,11 @@ export function BuyPage() {
                   </span>
                 </>
               ) : (
-                <span>Select or Pan · Pinch to zoom</span>
+                <span>
+                  {mobileTool === 'pan'
+                    ? 'Pan · Pinch/double-tap zoom · Select to claim'
+                    : 'Drag to select · Pinch/double-tap zoom'}
+                </span>
               )}
             </span>
             <span className="buy-sheet-chevron" aria-hidden>
@@ -599,10 +720,16 @@ export function BuyPage() {
             </>
           ) : (
             <div className="mini-editor-empty">
-              <p>{isMobile ? 'Drag on the board to claim an area' : 'Drag on the board to claim an area'}</p>
+              <p>
+                {isMobile
+                  ? mobileTool === 'pan'
+                    ? 'Explore the board, then tap Select'
+                    : 'Drag on the board to claim an area'
+                  : 'Drag on the board to claim an area'}
+              </p>
               <span className="field-hint">
                 {isMobile
-                  ? 'Choose Select or Pan below · Pinch with two fingers to zoom'
+                  ? 'Pan by default · Select to claim · Pinch or double-tap to zoom'
                   : 'Scroll = zoom · Right/middle-drag = pan'}
               </span>
             </div>
@@ -728,7 +855,7 @@ export function BuyPage() {
                   setSheetExpanded(false);
                 }}
               >
-                Edit area
+                Edit
               </button>
             )}
             {primary && (
@@ -740,13 +867,22 @@ export function BuyPage() {
                 Image
               </button>
             )}
+            {!primary && (
+              <button
+                type="button"
+                className={`btn ghost wide${mobileTool === 'select' ? ' is-active-tool' : ''}`}
+                onClick={() => setMobileTool(mobileTool === 'select' ? 'pan' : 'select')}
+              >
+                {mobileTool === 'select' ? 'Use Pan' : 'Use Select'}
+              </button>
+            )}
             <button
               type="button"
               className="btn primary wide"
               disabled={!canCheckout}
               onClick={() => setCheckoutOpen(true)}
             >
-              Checkout{primary ? ` · ${formatUsd(priceCents)}` : ''}
+              {primary ? `Checkout · ${formatUsd(priceCents)}` : 'Claim pixels'}
             </button>
           </div>
         )}

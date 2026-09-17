@@ -45,6 +45,10 @@ type Props = {
    * center is in viewport/client coords for zoom anchoring.
    */
   onPinchZoom?: (scaleRatio: number, centerClientX: number, centerClientY: number) => void;
+  /**
+   * Double-tap / double-click zoom (maps / r-place style). Client coords for anchoring.
+   */
+  onDoubleTapZoom?: (clientX: number, clientY: number) => void;
 };
 
 const ACCENT = '#ff2d55';
@@ -204,13 +208,16 @@ export function PixelBoard({
   onHoverCell,
   onPanDelta,
   onPinchZoom,
+  onDoubleTapZoom,
 }: Props) {
   /*
-   * Touch / pointer interaction model (buy board):
-   * - 1 finger (or left mouse): mass-select a rectangle of cells
-   * - 2 fingers: pan via centroid movement (onPanDelta); pinch distance → onPinchZoom
-   * - Right / middle mouse drag: pan (desktop)
-   * Parent also maps wheel → zoom. Avoid setState on pan frames for responsiveness.
+   * Touch / pointer interaction model (buy board) — aligned with r/place, pxls, maps:
+   * - Mobile default: 1 finger = pan (parent sets interactMode="pan")
+   * - Select mode: 1 finger drag = mass-select rectangle
+   * - 2 fingers: pan + pinch zoom toward midpoint
+   * - Double-tap: zoom in toward tap (onDoubleTapZoom)
+   * - Desktop: left-drag select; right/middle-drag pan; wheel zoom
+   * Avoid setState on pan frames for responsiveness.
    */
   const fitContain = letterbox || cover;
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -235,6 +242,8 @@ export function PixelBoard({
   } | null>(null);
   const [draft, setDraft] = useState<Region | null>(null);
   const draftFrameRef = useRef<number | null>(null);
+  /** Double-tap zoom detection (maps / r-place style). */
+  const lastTapRef = useRef<{ t: number; x: number; y: number } | null>(null);
   const imageCache = useRef(new Map<string, HTMLImageElement>());
   const previewImgRef = useRef<HTMLImageElement | null>(null);
   const [previewTick, setPreviewTick] = useState(0);
@@ -688,19 +697,48 @@ export function PixelBoard({
     dragRef.current = null;
     if (!drag) return;
 
+    const considerDoubleTap = () => {
+      if (drag.moved || !onDoubleTapZoom) return;
+      const now = performance.now();
+      const prev = lastTapRef.current;
+      if (
+        prev &&
+        now - prev.t < 320 &&
+        Math.hypot(e.clientX - prev.x, e.clientY - prev.y) < 28
+      ) {
+        lastTapRef.current = null;
+        onDoubleTapZoom(e.clientX, e.clientY);
+        return true;
+      }
+      lastTapRef.current = { t: now, x: e.clientX, y: e.clientY };
+      return false;
+    };
+
     if (drag.kind === 'pan') {
-      // Right / middle / left-pan gestures never open links on release
+      // Short tap in pan mode can still double-tap-zoom; never opens links
+      considerDoubleTap();
       return;
     }
 
     if (drag.kind === 'click') {
       setDraft(null);
-      if (!drag.moved) openAdIfLinked({ x: drag.startX, y: drag.startY });
+      if (!drag.moved) {
+        if (considerDoubleTap()) return;
+        openAdIfLinked({ x: drag.startX, y: drag.startY });
+      }
+      return;
+    }
+
+    // Tiny tap (no real drag) in select mode → treat as double-tap zoom candidate
+    if (!drag.moved && (drag.draft?.width ?? 1) <= 1 && (drag.draft?.height ?? 1) <= 1) {
+      setDraft(null);
+      considerDoubleTap();
       return;
     }
 
     const region = drag.draft || draft;
     setDraft(null);
+    lastTapRef.current = null;
     if (!region || !onSelectionChange) return;
     if (regionHitsSold(region, ads)) return;
     onSelectionChange(appendSelect ? [...selection, region] : [region]);
@@ -736,8 +774,10 @@ export function PixelBoard({
           tabIndex={interactMode === 'select' || interactMode === 'pan' ? 0 : -1}
           aria-label={
             interactMode === 'select'
-              ? 'Speckboard pixel grid. Drag one finger to select; use two fingers to pan or pinch.'
-              : 'Speckboard pixel grid'
+              ? 'Speckboard. Drag to select an area. Pinch or double-tap to zoom. Two fingers to pan.'
+              : interactMode === 'pan'
+                ? 'Speckboard. Drag to pan. Pinch or double-tap to zoom. Switch to Select to claim pixels.'
+                : 'Speckboard pixel grid'
           }
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
