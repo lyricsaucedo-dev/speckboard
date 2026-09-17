@@ -107,6 +107,15 @@ export function CheckoutModal({
           {pixels} × $0.25 = {formatUsd(priceCents)}
           {regions[0] ? ` · first region ${regions[0].width}×${regions[0].height}` : ''}
         </p>
+        {config?.demoCheckout ? (
+          <p className="field-hint checkout-demo-note">
+            Demo mode — no card charge. Add Stripe test keys to enable Pay with Stripe.
+          </p>
+        ) : (
+          <p className="field-hint checkout-live-note">
+            You’ll complete payment on Stripe Checkout (test or live, per server keys).
+          </p>
+        )}
 
         <form
           className="checkout-form"

@@ -33,7 +33,11 @@ app.post(
   express.raw({ type: 'application/json' }),
   async (req, res) => {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
-    if (!stripe || !webhookSecret || webhookSecret.includes('...')) {
+    const webhookReady =
+      Boolean(webhookSecret) &&
+      !webhookSecret.includes('...') &&
+      !/REPLACE|YOUR_|CHANGE_ME|placeholder/i.test(webhookSecret);
+    if (!stripe || !webhookReady) {
       return res.status(400).send('Webhook not configured');
     }
 
@@ -137,5 +141,9 @@ app.listen(PORT, () => {
     console.log(
       'Stripe keys not set — DEMO_CHECKOUT mode (purchases persist locally without payment)'
     );
+  } else if (process.env.DEMO_CHECKOUT === 'true') {
+    console.log('DEMO_CHECKOUT=true — Stripe keys present but demo purchases forced');
+  } else {
+    console.log('Stripe Checkout enabled (test or live keys loaded)');
   }
 });

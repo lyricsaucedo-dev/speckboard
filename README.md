@@ -33,17 +33,41 @@ Copy `.env.example` → `.env` at the repo root:
 | `PORT` | API port (default `3001`) |
 | `CLIENT_URL` | Frontend origin for CORS + Stripe redirects (`http://localhost:5173`) |
 | `SESSION_SECRET` | Express session secret |
-| `STRIPE_SECRET_KEY` | Stripe secret key (`sk_test_…`) |
+| `STRIPE_SECRET_KEY` | Stripe secret key (`sk_test_…`) — must not contain `...` |
 | `STRIPE_PUBLISHABLE_KEY` | Publishable key (`pk_test_…`) — exposed via `/api/config` |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret (`whsec_…`) |
 | `DEMO_CHECKOUT` | Force demo purchases (`true`) even if Stripe keys exist |
 
-### Stripe setup
+### Stripe test mode (start here)
 
-1. Create a [Stripe test account](https://dashboard.stripe.com/test/apikeys) and paste keys into `.env`.
-2. For local webhooks: `stripe listen --forward-to localhost:3001/api/stripe/webhook` and set `STRIPE_WEBHOOK_SECRET`.
-3. Success URL also calls `/api/checkout/confirm` so local testing works without a webhook.
-4. Restart `npm run dev` after editing `.env`.
+1. Open [Stripe test API keys](https://dashboard.stripe.com/test/apikeys) (Test mode toggle **ON**), **or** run `stripe sandbox create --from-git` for a temporary claimable sandbox (`sk_test_…` / `rkcs_test_…` + `pk_test_…`).
+2. Paste secret + publishable keys into `.env` (replace any `REPLACE_ME` / `...` placeholders). Restricted sandbox secrets (`rkcs_test_…`) are supported.
+3. Leave `DEMO_CHECKOUT` unset (or `false`).
+4. Local webhook (optional but recommended):
+   ```powershell
+   stripe listen --forward-to localhost:3001/api/stripe/webhook
+   ```
+   Copy the CLI `whsec_…` into `STRIPE_WEBHOOK_SECRET` (or use `stripe listen --print-secret`).
+5. Restart `npm run dev`. Check `GET /api/config` → `demoCheckout: false`.
+6. On `/buy`, complete a purchase — CTA should say **Pay with Stripe**. Use test card `4242 4242 4242 4242`.
+7. Success URL also calls `/api/checkout/confirm`, so local testing works even without `stripe listen`.
+8. If you used `stripe sandbox create`, **claim** the sandbox before it expires (`stripe sandbox claim` or the claim URL printed by the CLI) so keys stay yours.
+
+### Stripe on Render (test keys first)
+
+1. In the Render service → Environment, set:
+   - `STRIPE_SECRET_KEY` = `sk_test_…`
+   - `STRIPE_PUBLISHABLE_KEY` = `pk_test_…`
+   - `CLIENT_URL` = `https://YOUR_HOST` (same public URL as the service)
+   - `STRIPE_WEBHOOK_SECRET` = from step 2 (after webhook exists)
+2. Stripe Dashboard → Developers → Webhooks → Add endpoint:
+   - URL: `https://YOUR_HOST/api/stripe/webhook`
+   - Event: `checkout.session.completed`
+   - Paste the endpoint signing secret into Render `STRIPE_WEBHOOK_SECRET`
+3. Redeploy / restart. Buy a speck with a test card on the live site.
+4. When ready for real charges, swap to `sk_live_` / `pk_live_` and a live-mode webhook secret (same endpoint URL).
+
+Do **not** commit `.env` or live secrets.
 
 ## Product behavior
 
@@ -98,11 +122,11 @@ Invoke-RestMethod -Method Post http://localhost:3001/api/demo/seed
 | `CLIENT_URL` | Public HTTPS URL of this same service |
 | `SESSION_SECRET` | Long random string |
 | `DATA_DIR` | `/data` |
-| `STRIPE_SECRET_KEY` | `sk_live_…` (or `sk_test_…` to start) |
-| `STRIPE_PUBLISHABLE_KEY` | Matching `pk_…` |
-| `STRIPE_WEBHOOK_SECRET` | From Stripe webhook endpoint |
+| `STRIPE_SECRET_KEY` | `sk_test_…` first; later `sk_live_…` |
+| `STRIPE_PUBLISHABLE_KEY` | Matching `pk_test_…` / `pk_live_…` |
+| `STRIPE_WEBHOOK_SECRET` | From Stripe webhook endpoint (test or live mode) |
 
-5. In Stripe Dashboard → Webhooks: endpoint `https://YOUR_HOST/api/stripe/webhook`, event `checkout.session.completed`. Paste signing secret into `STRIPE_WEBHOOK_SECRET`.
+5. In Stripe Dashboard → Webhooks: endpoint `https://YOUR_HOST/api/stripe/webhook`, event `checkout.session.completed`. Paste signing secret into `STRIPE_WEBHOOK_SECRET`. Use **test mode** webhook while keys are `sk_test_`.
 6. After deploy, set `CLIENT_URL` to the real HTTPS URL and redeploy once if needed.
 
 Also: replace legal-page placeholders; plan a real DB when you outgrow the JSON file.

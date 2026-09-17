@@ -42,10 +42,21 @@ function draftPublic(d: DraftRow) {
 }
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY || '';
-const stripe =
-  stripeSecret && !stripeSecret.includes('...')
-    ? new Stripe(stripeSecret)
-    : null;
+
+/** True when STRIPE_SECRET_KEY looks like a real secret/restricted key (not a template). */
+function isStripeSecretConfigured(secret: string): boolean {
+  if (!secret) return false;
+  if (secret.includes('...')) return false;
+  if (/REPLACE|YOUR_|CHANGE_ME|changeme|placeholder/i.test(secret)) return false;
+  // sk_test_/sk_live_ or restricted keys (rk_*/rkcs_*) from Dashboard / sandbox CLI
+  if (!/^(sk_(test|live)_|rk(cs)?_(test|live)_)/.test(secret)) return false;
+  return secret.length >= 20;
+}
+
+/** Stripe client instance — null when keys are missing/placeholder (demo mode). */
+export const stripe = isStripeSecretConfigured(stripeSecret)
+  ? new Stripe(stripeSecret)
+  : null;
 
 const demoCheckout = process.env.DEMO_CHECKOUT === 'true' || !stripe;
 
@@ -278,32 +289,38 @@ apiRouter.post('/checkout', async (req, res) => {
   }
 
   try {
-    const session = await stripe!.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: 'usd',
-            unit_amount: amountCents,
-            product_data: {
-              name: `Speckboard — ${pixels} pixel${pixels === 1 ? '' : 's'}`,
-              description: `${regions.length} region(s) · ${title}${
-                locked ? ' · Guest (locked after purchase)' : ' · Editable account purchase'
-              }${!linkUrl ? ' · No outbound link (< $5)' : ''}`,
+    // Omit payment_method_types → Stripe dynamic payment methods (Dashboard-configured).
+    // Idempotency key retries safely if the client double-submits the same pending checkout.
+    const session = await stripe!.checkout.sessions.create(
+      {
+        mode: 'payment',
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: 'usd',
+              unit_amount: amountCents,
+              product_data: {
+                name: `Speckboard — ${pixels} pixel${pixels === 1 ? '' : 's'}`,
+                description: `${regions.length} region(s) · ${title}${
+                  locked ? ' · Guest (locked after purchase)' : ' · Editable account purchase'
+                }${!linkUrl ? ' · No outbound link (< $5)' : ''}`,
+              },
             },
           },
+        ],
+        success_url: `${clientUrl}/success?session_id={CHECKOUT_SESSION_ID}&checkout=${checkoutId}`,
+        cancel_url: `${clientUrl}/buy?canceled=1`,
+        metadata: {
+          checkoutId,
+          locked: locked ? '1' : '0',
+          pixels: String(pixels),
         },
-      ],
-      success_url: `${clientUrl}/success?session_id={CHECKOUT_SESSION_ID}&checkout=${checkoutId}`,
-      cancel_url: `${clientUrl}/buy?canceled=1`,
-      metadata: {
-        checkoutId,
-        locked: locked ? '1' : '0',
-        pixels: String(pixels),
       },
-    });
+      {
+        idempotencyKey: `speckboard_checkout_${checkoutId}`,
+      }
+    );
 
     db.update((s) => {
       const p = s.pending_checkouts.find((c) => c.id === checkoutId);
@@ -489,4 +506,4 @@ apiRouter.delete('/drafts/:id', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-export { stripe, demoCheckout };
+export { demoCheckout };
