@@ -138,7 +138,8 @@ function drawShapedAd(
 
   ctx.beginPath();
   pathPixelShape(ctx, shape, rx + 0.5, ry + 0.5, Math.max(0, rw - 1), Math.max(0, rh - 1));
-  ctx.strokeStyle = hasOutboundLink(ad) ? 'rgba(255,45,85,0.9)' : 'rgba(245,245,247,0.28)';
+  // Same quiet edge for all ads — linked ones used to stroke bright red and looked like a stuck selection
+  ctx.strokeStyle = 'rgba(245,245,247,0.28)';
   ctx.lineWidth = 1;
   ctx.stroke();
 }
