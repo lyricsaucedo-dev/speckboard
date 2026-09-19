@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { authRouter } from './auth.js';
 import { apiRouter, finalizeCheckout, stripe } from './api.js';
 import { db } from './db.js';
-import { ensureDefaultSpeck } from './seed.js';
+import { ensureDefaultSpeck, purgeAccidentalDemoAds } from './seed.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
@@ -127,6 +127,11 @@ app.get('*', (req, res, next) => {
     if (err) next();
   });
 });
+
+const purged = purgeAccidentalDemoAds();
+if (purged.removed > 0) {
+  console.log(`Purged ${purged.removed} accidental demo speck(s): ${purged.ids.join(', ')}`);
+}
 
 const seedResult = ensureDefaultSpeck();
 if (seedResult.seeded) {

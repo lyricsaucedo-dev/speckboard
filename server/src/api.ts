@@ -58,7 +58,9 @@ export const stripe = isStripeSecretConfigured(stripeSecret)
   ? new Stripe(stripeSecret)
   : null;
 
-const demoCheckout = process.env.DEMO_CHECKOUT === 'true' || !stripe;
+const demoCheckout =
+  process.env.NODE_ENV !== 'production' &&
+  (process.env.DEMO_CHECKOUT === 'true' || !stripe);
 
 export const apiRouter = Router();
 
@@ -272,6 +274,12 @@ apiRouter.post('/checkout', async (req, res) => {
   });
 
   const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+  if (!stripe && process.env.NODE_ENV === 'production') {
+    return res.status(503).json({
+      error: 'Payments are not configured on this server',
+    });
+  }
 
   if (demoCheckout) {
     finalizeCheckout(checkoutId, `demo_${checkoutId}`);

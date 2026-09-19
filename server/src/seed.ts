@@ -4,6 +4,28 @@ import { PIXEL_PRICE_CENTS, db, nowIso } from './db.js';
 export const POP_CAT_AD_ID = 'seed-pop-cat';
 export const POP_CAT_TITLE = 'Dont tell my dad i used his card';
 
+/**
+ * Specks created while production still ran DEMO_CHECKOUT (no Stripe charge).
+ * Purged once on boot; safe to leave the list forever.
+ */
+const ACCIDENTAL_DEMO_AD_IDS = new Set([
+  'daa5a3a0-ab61-4616-80f4-3a4f63ce92c7', // "Lol" — demo-era ghost speck
+]);
+
+export function purgeAccidentalDemoAds(): { removed: number; ids: string[] } {
+  const removedIds: string[] = [];
+  db.update((s) => {
+    s.ads = s.ads.filter((a) => {
+      if (ACCIDENTAL_DEMO_AD_IDS.has(a.id)) {
+        removedIds.push(a.id);
+        return false;
+      }
+      return true;
+    });
+  });
+  return { removed: removedIds.length, ids: removedIds };
+}
+
 /** Embedded 20×20 Pop Cat PNG — works in Docker without client/public on disk. */
 const POP_CAT_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAD7klEQVR4nI2U/U/VVRzHX+f7cC+CIBgoK8yRBIW2dK1cgZuzgs1VrrQFRrQpIG3FVltirZVPlGKZKJYb4kObP7Tmf1Cbm6hLJs6pSxCSx0vcEImHe7nf+/1+Tzvfe3lwy+Zn+z6ec97n/fm83+cjpHRl8/EGfL75vFdewUOFhFOnG4ncC3Gt9RILs7PYW3fEG9IsK8Lgld/46dg+VuRnIHFmV8Xvcy8VBS/m8vOJYzyV+ghLktJBajN7Ga7QKFy9kYLnLa533WTrhnVk5j6NrWns33eUz3fUoM1AgYtDdGqKZH8qHR23eWlNAb/+cXUW0HTUZAdXCqzgJCUlFVxtOUvLtT/Jy0ljy+svI1wQ6FTU1iMRvPXaO7i2xZZtm/nhi+/mbAdCSimfyVtEQ+03hP4ZJzAwwPjEOI5vEN2RFJVUkZ69HM0VIByEFEgBWyurWF+0nuQkk87+LnbtORSrYSwN3atQYmIiuXn56NLAsgVlOw6xOGcle+v2U7imEFdx0QTSlZxsPs7Bhga+3F2HbbuzKYPNzfYBVi3PpLq4nOycXKLmAJWffo+ULsXrXkFKjZbzLbjWFGcOHsb0GWyqqebihXPc7ujk99bzjAb7SV2UFUtZIa96Mp2ytZuw/cMIEcGSOlW1ClQwFPyL0Pg4dV/v5E7fLY9l1HI53fQLy3KWMTZ6jw0bX+VGx/AsYCg0Qf3Hb5NsGNydjNLafoemk2cxNJPWtivU79rOAtOHqWqoZNTgbiRMzSef8dwLqwkGR+gPdMVq6PlN2rTe6iPs6tzo7EZogkBvgJ7eAAd2b2ehnoDhgq1WCOU3SDcTONH4LYePNIArEUJMiyIxdT9hy+Hi9S6E9LHzq0ZvpamDIXSEFhNEPTwCQn1KEjHQcNCFQAgtBqiphf4ExiITSE3HUqKjzOcoYyEUpf8IEQdXo66mlI4z9H4KweW2PoIjI9TW7vFSFkJXsCxI8pGgm/cDSXB0wWNJaUhld0UZoWwTP7FSsHLFEpqPnsKKqG/pbT0VifBo/rPo7d1EdPh7bNRLNzMpBSFdLgz30Fx2ANu2cFw5zVCdApe01PlELQehzlo8/LpB+eZKLk32MRoNk5GYQkZSsse+LRyk6ccz2LbNtg9Leff9ylnbTI5PcLnlHH7d98CuZdlT8XoKzxU+M5HA4AC9fT1Uf/QB81IWTzOUTE0GeSIn+4FgHlufH9PwY5oGQ0ND9A90s3RpFlEZZl5KBkIpPz25uGgtg/2B/wWcM52srMe9y3VdQmFnpifGRZlWT6UztxndH6opxF6U0WJCekDCRsT3igMKZDREZVUpumF48x42VPN9483SmG/R+BcxsaWIWrGKjQAAAABJRU5ErkJggg==';
