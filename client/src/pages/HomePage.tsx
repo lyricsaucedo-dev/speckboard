@@ -106,7 +106,7 @@ export function HomePage() {
           </li>
           <li>
             <strong>Links from $5</strong>
-            <span>Buy 20+ pixels and attach a clickable URL to your area.</span>
+            <span>Buy 20+ pixels to unlock an optional clickable URL on your speck.</span>
           </li>
           <li>
             <strong>Sign in to keep editing</strong>

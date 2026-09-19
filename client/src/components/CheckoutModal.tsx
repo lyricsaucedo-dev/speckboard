@@ -56,12 +56,16 @@ export function CheckoutModal({
 
   useEffect(() => {
     if (!linksUnlocked) setLinkUrl('');
-    else if (!linkUrl) setLinkUrl('https://');
-  }, [linksUnlocked]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [linksUnlocked]);
 
   if (!open) return null;
 
   const locked = !user;
+  const normalizedLink = () => {
+    const raw = linkUrl.trim();
+    if (!linksUnlocked || !raw || raw === 'https://') return '';
+    return raw;
+  };
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
@@ -126,7 +130,7 @@ export function CheckoutModal({
             try {
               await onSubmit({
                 title,
-                linkUrl: linksUnlocked ? linkUrl : '',
+                linkUrl: normalizedLink(),
                 imageUrl,
                 shape,
                 acceptedTos,
@@ -143,9 +147,12 @@ export function CheckoutModal({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Your brand or message"
+              placeholder="e.g. Pop Cat, My brand, Hello"
               maxLength={80}
             />
+            <span className="field-hint">
+              Short name for your speck — shown on hover, recent list, and your dashboard.
+            </span>
           </label>
 
           <fieldset className="shape-fieldset">
@@ -168,9 +175,8 @@ export function CheckoutModal({
           </fieldset>
 
           <label>
-            Destination link
+            Destination link <span className="field-optional">(optional)</span>
             <input
-              required={linksUnlocked}
               type={linksUnlocked ? 'url' : 'text'}
               value={linksUnlocked ? linkUrl : ''}
               onChange={(e) => setLinkUrl(e.target.value)}
@@ -179,8 +185,8 @@ export function CheckoutModal({
             />
             <span className="field-hint">
               {linksUnlocked
-                ? 'Outbound link included with this purchase.'
-                : 'Links unlock at $5 (20 pixels)'}
+                ? 'Optional. If set, clicking your speck opens this URL. Leave blank for no link.'
+                : 'Links unlock at $5 (20 pixels) — then optional.'}
             </span>
           </label>
           <label>

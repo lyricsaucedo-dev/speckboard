@@ -1815,6 +1815,11 @@ main {
   color: var(--muted);
 }
 
+.field-optional {
+  font-weight: 500;
+  opacity: 0.75;
+}
+
 /* —— Selection mini editor (floating window) —— */
 .floating-window {
   position: fixed;

@@ -74,7 +74,7 @@ Do **not** commit `.env` or live secrets.
 - **Selection tools:** rectangle, square, brush; enable **Mass select** to add multiple regions.
 - **Live price:** `$0.25 × selected pixels`.
 - **Sold pixels** cannot be selected.
-- **Creative required before pay** (title, image URL, link) + ToS checkbox.
+- **Creative required before pay** (title + image URL) + ToS checkbox. Destination link is optional at $5+ (20 px).
 - **Guest purchase:** creative locked forever after buy.
 - **Signed-in purchase:** attached to account → editable in **Dashboard**; can buy more.
 - Legal pages: Terms, Privacy, Acceptable Use, DMCA (footer links).

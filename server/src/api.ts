@@ -158,15 +158,14 @@ apiRouter.patch('/ads/:id', requireAuth, (req, res) => {
       });
     }
     linkUrl = '';
-  } else {
-    if (!linkUrl) {
-      return res.status(400).json({ error: 'Destination link is required for purchases ≥ $5' });
-    }
+  } else if (linkUrl && linkUrl !== 'https://') {
     try {
       new URL(linkUrl);
     } catch {
       return res.status(400).json({ error: 'Link must be a valid URL' });
     }
+  } else {
+    linkUrl = '';
   }
 
   try {
@@ -237,17 +236,14 @@ apiRouter.post('/checkout', async (req, res) => {
 
   if (pixels < LINK_MIN_PIXELS) {
     linkUrl = '';
-  } else {
-    if (!linkUrl) {
-      return res.status(400).json({
-        error: 'Destination link is required for purchases of $5 or more (20+ pixels)',
-      });
-    }
+  } else if (linkUrl && linkUrl !== 'https://') {
     try {
       new URL(linkUrl);
     } catch {
       return res.status(400).json({ error: 'Link must be a valid URL' });
     }
+  } else {
+    linkUrl = '';
   }
 
   try {
@@ -304,7 +300,7 @@ apiRouter.post('/checkout', async (req, res) => {
                 name: `Speckboard — ${pixels} pixel${pixels === 1 ? '' : 's'}`,
                 description: `${regions.length} region(s) · ${title}${
                   locked ? ' · Guest (locked after purchase)' : ' · Editable account purchase'
-                }${!linkUrl ? ' · No outbound link (< $5)' : ''}`,
+                }${!linkUrl ? ' · No outbound link' : ''}`,
               },
             },
           },
